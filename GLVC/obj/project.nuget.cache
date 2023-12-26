@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "sld4KKFdf3Juxw3oN0lcUeRVS1pgoFlcJWCFCs9GnYOpumnLQcMvVA7+TQo8xEM1BURs8X5+4XbftDpHJqo2yg==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Tozo\\Documents\\GitHub\\GLVC\\GLVC\\GLVC.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Tozo\\.nuget\\packages\\csvhelper\\30.0.1\\csvhelper.30.0.1.nupkg.sha512",
+    "C:\\Users\\Tozo\\.nuget\\packages\\figgle\\0.5.1\\figgle.0.5.1.nupkg.sha512"
+  ],
+  "logs": []
+}
