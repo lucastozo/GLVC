@@ -60,7 +60,7 @@ namespace GLVC
                     return (false, $"Error: Object ID: {objectId} has custom rotation value, Position X,Y: {positionX}, {positionY}");
                 }
             }
-            return (true, "Success: Possible Level");
+            return (true, String.Empty);
         }
     }
 }

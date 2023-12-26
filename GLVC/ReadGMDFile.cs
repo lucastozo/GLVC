@@ -18,6 +18,8 @@ namespace GLVC
 
                 // default song
                 AudioTrack = 1;
+                // audio track is NG?
+                bool audioTrackIsNG = false;
 
                 // check k45 and k8
                 foreach (XmlNode kNode in xmlDoc.SelectNodes("//k")!)
@@ -26,12 +28,13 @@ namespace GLVC
 
                     if (key == "k45")
                     {
-                        int songID = int.Parse(kNode.NextSibling!.InnerText.Trim());
+                        AudioTrack = int.Parse(kNode.NextSibling!.InnerText.Trim());
                         if (version < 13)
                         {
                             // k45 key is custom song
-                            throw new Exception($"Error: Illegal custom song ID: {songID}");
+                            throw new Exception($"Error: Illegal custom song ID: {AudioTrack}");
                         }
+                        audioTrackIsNG = true;
                     }
                     else if (key == "k8")
                     {
@@ -95,7 +98,23 @@ namespace GLVC
                                     }
                                     else
                                     {
-                                        throw new Exception(possible.Item2); // item 2 is string
+                                        // throw new Exception(possible.Item2); // item 2 is string
+                                        Console.ForegroundColor = ConsoleColor.Red;
+                                        Console.WriteLine(possible.Item2);
+                                        Console.ResetColor();
+                                        Console.WriteLine("Return .gmd file without illegal objects? (y/n): ");
+                                        bool input = Console.ReadLine()!.Trim().ToLower() == "y" ? true : false;
+                                        if (input)
+                                        {
+                                            ReturnGMDFile returnGMD = new ReturnGMDFile();
+                                            returnGMD.ReturnFile(xmlData, objects, csvFilePath, version, AudioTrack, audioTrackIsNG);
+                                            return;
+                                        }
+                                        else
+                                        {
+                                            Console.Clear();
+                                            throw new Exception(possible.Item2); // item 2 is string
+                                        }
                                     }
                                 }
 

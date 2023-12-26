@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v7.0": {
-      "GLVC/1.0.0": {
+      "GLVC/1.1.0": {
         "dependencies": {
           "CsvHelper": "30.0.1",
           "Figgle": "0.5.1"
@@ -34,7 +34,7 @@
     }
   },
   "libraries": {
-    "GLVC/1.0.0": {
+    "GLVC/1.1.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
