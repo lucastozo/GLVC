@@ -1,7 +1,0 @@
-C:\Users\Tozo\Documents\GitHub\GLVC\GLVC\bin\Release\net7.0\publish\GLVC.exe
-C:\Users\Tozo\Documents\GitHub\GLVC\GLVC\bin\Release\net7.0\publish\GLVC.dll
-C:\Users\Tozo\Documents\GitHub\GLVC\GLVC\bin\Release\net7.0\publish\GLVC.deps.json
-C:\Users\Tozo\Documents\GitHub\GLVC\GLVC\bin\Release\net7.0\publish\GLVC.runtimeconfig.json
-C:\Users\Tozo\Documents\GitHub\GLVC\GLVC\bin\Release\net7.0\publish\GLVC.pdb
-C:\Users\Tozo\Documents\GitHub\GLVC\GLVC\bin\Release\net7.0\publish\CsvHelper.dll
-C:\Users\Tozo\Documents\GitHub\GLVC\GLVC\bin\Release\net7.0\publish\Figgle.dll
