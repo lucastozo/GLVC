@@ -140,7 +140,7 @@ namespace GLVC
             //Figgle Text
             Console.Write(FiggleFonts.Standard.Render("GLVC"));
             //github link
-            Console.WriteLine("github.com/lucastozo/GameLevelVersionChecker");
+            Console.WriteLine("github.com/lucastozo/GLVC");
             //load version
             Assembly assembly = Assembly.GetExecutingAssembly();
             Console.WriteLine($"Version: {Assembly.GetExecutingAssembly().GetName().Version}");
