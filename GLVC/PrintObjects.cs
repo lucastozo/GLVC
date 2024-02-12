@@ -2,10 +2,10 @@
 {
     public class PrintObjects
     {
-        const int tableWidth = 73;
-        public void PrintLine()
+        private const int TableWidth = 105;
+        public static void PrintLine()
         {
-            Console.WriteLine(new string('-', tableWidth));
+            Console.WriteLine(new string('-', TableWidth));
         }
 
         public void PrintHeader(string header, params string[] columns)
@@ -17,30 +17,30 @@
 
         public void PrintRow(params string[] columns)
         {
-            int width = (tableWidth - columns.Length) / columns.Length;
-            string row = "|";
+            var width = (TableWidth - columns.Length) / columns.Length;
+            var row = "|";
 
-            foreach (string column in columns)
+            foreach (var column in columns)
             {
-                row += AlignCentre(column, width) + "|";
+                row += AlignCenter(column, width) + "|";
             }
 
             Console.WriteLine(row);
             PrintLine();
         }
 
-        public string AlignCentre(string text, int width)
+        public static string AlignCenter(string text, int width)
         {
-            text = text.Length > width ? text.Substring(0, width - 3) + "..." : text;
+            if (text.Length > width)
+            {
+                text = text[..(width - 3)] + "...";
+            }
 
             if (string.IsNullOrEmpty(text))
             {
                 return new string(' ', width);
             }
-            else
-            {
-                return text.PadRight(width - (width - text.Length) / 2).PadLeft(width);
-            }
+            return text.PadRight(width - (width - text.Length) / 2).PadLeft(width);
         }
     }
 }

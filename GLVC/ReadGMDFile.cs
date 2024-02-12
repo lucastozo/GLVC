@@ -4,29 +4,29 @@ using System.Xml;
 
 namespace GLVC
 {
-    public class ReadGMDFile : GJGameLevel
+    public class ReadGmdFile : GjGameLevel
     {
         public void ReadFile(string filePath, string csvFilePath, bool printObjects, int version)
         {
-            try
+            // load xml
+            var xmlData = File.ReadAllText(filePath);
+            xmlData = CleanInvalidXmlChars(xmlData);
+            var xmlDoc = new XmlDocument();
+            xmlDoc.LoadXml(xmlData);
+
+            // default song
+            AudioTrack = 1;
+            // audio track is NG?
+            var audioTrackIsNg = false;
+
+            // check k45 and k8
+            foreach (XmlNode kNode in xmlDoc.SelectNodes("//k")!)
             {
-                // load xml
-                string xmlData = File.ReadAllText(filePath);
-                xmlData = CleanInvalidXmlChars(xmlData);
-                XmlDocument xmlDoc = new XmlDocument();
-                xmlDoc.LoadXml(xmlData);
+                var key = kNode.InnerText;
 
-                // default song
-                AudioTrack = 1;
-                // audio track is NG?
-                bool audioTrackIsNG = false;
-
-                // check k45 and k8
-                foreach (XmlNode kNode in xmlDoc.SelectNodes("//k")!)
+                switch (key)
                 {
-                    string key = kNode.InnerText;
-
-                    if (key == "k45")
+                    case "k45":
                     {
                         AudioTrack = int.Parse(kNode.NextSibling!.InnerText.Trim());
                         if (version < 13)
@@ -34,9 +34,10 @@ namespace GLVC
                             // k45 key is custom song
                             throw new Exception($"Error: Illegal custom song ID: {AudioTrack}");
                         }
-                        audioTrackIsNG = true;
+                        audioTrackIsNg = true;
+                        break;
                     }
-                    else if (key == "k8")
+                    case "k8":
                     {
                         AudioTrack = int.Parse(kNode.NextSibling!.InnerText.Trim()) + 1;
                         // Check song
@@ -46,131 +47,133 @@ namespace GLVC
                         {
                             throw new Exception($"Error: Illegal song ID: {AudioTrack}");
                         }
+
+                        break;
                     }
                 }
+            }
 
-                // create IsPossibleVersion object
-                IsPossibleVersion isPossibleVersion = new IsPossibleVersion(csvFilePath, version);
+            // create IsPossibleVersion object
+            var isPossibleVersion = new IsPossibleVersion(csvFilePath, version);
 
-                // k4 key = objects
-                foreach (XmlNode kNode in xmlDoc.SelectNodes("//k")!)
+            // k4 key = objects
+            foreach (XmlNode kNode in xmlDoc.SelectNodes("//k")!)
+            {
+                var key = kNode.InnerText;
+                var value = kNode.NextSibling!.InnerText.Trim();
+
+                if (key == "k4")
                 {
-                    string key = kNode.InnerText;
-                    string value = kNode.NextSibling!.InnerText.Trim();
+                    LevelString = value;
 
-                    if (key == "k4")
+                    var safe = value.Replace('-', '+').Replace('_', '/');
+                    // Decode the base64 string
+                    var compressedBytes = Convert.FromBase64String(safe);
+
+                    // Decompress the bytes
+                    using var stream = new GZipStream(new MemoryStream(compressedBytes), CompressionMode.Decompress);
+                    const int size = 4096;
+                    var buffer = new byte[size];
+                    using var memory = new MemoryStream();
+                    int count;
+                    do
                     {
-                        LevelString = value;
-
-                        string safe = value.Replace('-', '+').Replace('_', '/');
-                        // Decode the base64 string
-                        byte[] compressedBytes = Convert.FromBase64String(safe);
-
-                        // Decompress the bytes
-                        using (GZipStream stream = new GZipStream(new MemoryStream(compressedBytes), CompressionMode.Decompress))
+                        count = stream.Read(buffer, 0, size);
+                        if (count > 0)
                         {
-                            const int size = 4096;
-                            byte[] buffer = new byte[size];
-                            using (MemoryStream memory = new MemoryStream())
+                            memory.Write(buffer, 0, count);
+                        }
+                    }
+                    while (count > 0);
+                    var decodedString = Encoding.UTF8.GetString(memory.ToArray());
+
+                    // Split the decoded string into objects
+                    var objects = decodedString.Split(';');
+
+                    // check single object
+                    foreach (var obj in objects)
+                    {
+                        var possible = isPossibleVersion.CheckSingleObject(obj, version);
+                        if (possible.Item1) // item 1 is bool
+                        {
+                            Objects.Add(obj);
+                        }
+                        else
+                        {
+                            // throw new Exception(possible.Item2); // item 2 is string
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine(possible.Item2);
+                            Console.ResetColor();
+                            Console.WriteLine("Return .gmd file without illegal objects? (y/n): ");
+                            var input = Console.ReadLine()!.Trim().ToLower() == "y";
+                            if (input)
                             {
-                                int count = 0;
-                                do
-                                {
-                                    count = stream.Read(buffer, 0, size);
-                                    if (count > 0)
-                                    {
-                                        memory.Write(buffer, 0, count);
-                                    }
-                                }
-                                while (count > 0);
-                                string decodedString = Encoding.UTF8.GetString(memory.ToArray());
+                                var returnGmd = new ReturnGmdFile();
+                                returnGmd.ReturnFile(xmlData, objects, csvFilePath, version, audioTrackIsNg);
+                                return;
+                            }
+                            Console.Clear();
+                            throw new Exception(possible.Item2); // item 2 is string
+                        }
+                    }
 
-                                // Split the decoded string into objects
-                                string[] objects = decodedString.Split(';');
-
-                                // check single object
-                                foreach (string obj in objects)
+                    // print the objects
+                    if (printObjects)
+                    {
+                        Console.Clear();
+                        var print = new PrintObjects();
+                        print.PrintHeader(Path.GetFileName(filePath), "Index", "ObjectID", "Position", "Rotation", "Scale");
+                        var index = 1;
+                        foreach (var obj in Objects)
+                        {
+                            var parts = obj.Split(',');
+                            var objectId = "";
+                            var positionX = "0";
+                            var positionY = "0";
+                            var rotation = "0";
+                            var scale = "1";
+                            for (var i = 0; i < parts.Length; i += 2)
+                            {
+                                switch (parts[i])
                                 {
-                                    var possible = isPossibleVersion.CheckSingleObject(obj, version);
-                                    if (possible.Item1) // item 1 is bool
-                                    {
-                                        Objects.Add(obj);
-                                    }
-                                    else
-                                    {
-                                        // throw new Exception(possible.Item2); // item 2 is string
-                                        Console.ForegroundColor = ConsoleColor.Red;
-                                        Console.WriteLine(possible.Item2);
-                                        Console.ResetColor();
-                                        Console.WriteLine("Return .gmd file without illegal objects? (y/n): ");
-                                        bool input = Console.ReadLine()!.Trim().ToLower() == "y" ? true : false;
-                                        if (input)
-                                        {
-                                            ReturnGMDFile returnGMD = new ReturnGMDFile();
-                                            returnGMD.ReturnFile(xmlData, objects, csvFilePath, version, AudioTrack, audioTrackIsNG);
-                                            return;
-                                        }
-                                        else
-                                        {
-                                            Console.Clear();
-                                            throw new Exception(possible.Item2); // item 2 is string
-                                        }
-                                    }
-                                }
-
-                                // print the objects
-                                if (printObjects)
-                                {
-                                    Console.Clear();
-                                    PrintObjects print = new PrintObjects();
-                                    print.PrintHeader(Path.GetFileName(filePath), "Index", "ObjectID", "Rotation");
-                                    int index = 1;
-                                    foreach (string obj in Objects)
-                                    {
-                                        string[] parts = obj.Split(',');
-                                        string objectId = "";
-                                        string rotation = "";
-                                        for (int i = 0; i < parts.Length; i += 2)
-                                        {
-                                            if (parts[i] == "1")
-                                            {
-                                                objectId = parts[i + 1];
-                                            }
-                                            else if (parts[i] == "6")
-                                            {
-                                                rotation = parts[i + 1];
-                                            }
-                                        }
-                                        if (!string.IsNullOrEmpty(objectId))
-                                        {
-                                            print.PrintRow(index.ToString(), objectId, rotation);
-                                            index++;
-                                        }
-                                        // Reset objectId and rotation for the next object
-                                        objectId = "";
-                                        rotation = "";
-                                    }
+                                    case "1":
+                                        objectId = parts[i + 1];
+                                        break;
+                                    case "2":
+                                        positionX = parts[i + 1];
+                                        break;
+                                    case "3":
+                                        positionY = parts[i + 1];
+                                        break;
+                                    case "6":
+                                        rotation = parts[i + 1];
+                                        break;
+                                    case "32":
+                                        scale = parts[i + 1];
+                                        break;
                                 }
                             }
+                            var position = positionX + "X, " + positionY + "Y";
+                            if (!string.IsNullOrEmpty(objectId))
+                            {
+                                print.PrintRow(index.ToString(), objectId, position, rotation, scale);
+                                index++;
+                            }
                         }
-
                     }
-                }
 
-                // success
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("Success: Possible Level");
-                Console.ResetColor();
+                }
             }
-            catch
-            {
-                throw;
-            }
+
+            // success
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("Success: Possible Level");
+            Console.ResetColor();
         }
 
         public static string CleanInvalidXmlChars(string text)
         {
-            var validXmlChars = text.Where(ch => XmlConvert.IsXmlChar(ch)).ToArray();
+            var validXmlChars = text.Where(XmlConvert.IsXmlChar).ToArray();
             return new string(validXmlChars);
         }
     }

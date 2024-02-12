@@ -3,9 +3,9 @@ using System.Reflection;
 
 namespace GLVC
 {
-    class Program
+    internal class Program
     {
-        static void Main()
+        private static void Main()
         {
             // put the program inside a loop
             while (true)
@@ -23,71 +23,72 @@ namespace GLVC
                     Console.Write("docs.google.com/spreadsheets/d/18R2_qBXa9iCZZ6bhfSpxEah3YLRGeBSk");
                     Console.ResetColor();
                     Console.Write("): ");
-                    string csvFilePath = Console.ReadLine()!.Trim();
-                    if (csvFilePath == "")
+                    var csvFilePath = Console.ReadLine()!.Trim();
+                    switch (csvFilePath)
                     {
-                        Console.WriteLine("using default CSV file.");
-                        Console.WriteLine();
-                        csvFilePath = "objid.csv";
-                    }
-                    else if (csvFilePath == "/help")
-                    {
-                        CsvHelp();
-                        Console.WriteLine("Press any key to continue...");
-                        Console.ReadKey();
-                        continue;
-                    }
-                    else
-                    {
-                        if (!File.Exists(csvFilePath))
+                        case "":
+                            Console.WriteLine("using default CSV file.");
+                            Console.WriteLine();
+                            csvFilePath = "objid.csv";
+                            break;
+                        case "/help":
+                            CsvHelp();
+                            Console.WriteLine("Press any key to continue...");
+                            Console.ReadKey();
+                            continue;
+                        default:
                         {
-                            throw new FileNotFoundException();
+                            if (!File.Exists(csvFilePath))
+                            {
+                                throw new FileNotFoundException();
+                            }
+                            Console.WriteLine("using custom CSV file.");
+                            Console.WriteLine();
+                            break;
                         }
-                        Console.WriteLine("using custom CSV file.");
-                        Console.WriteLine();
                     }
 
                     //gmd file path
-                    Console.Write("Insert a .GMD file path: ");
-                    string gmdPath = Console.ReadLine()!.Trim();
-                    if (!File.Exists(gmdPath))
+                    var gmdPath = "";
+                    var possibleFile = false;
+                    do
                     {
-                        throw new FileNotFoundException();
-                    }
+                        Console.Write("Insert a .GMD file path: ");
+                        gmdPath = Console.ReadLine()!.Trim();
+                        possibleFile = File.Exists(gmdPath) && Path.GetExtension(gmdPath) == ".gmd";
+                        if (!possibleFile)
+                        {
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("File was not found or is not a .gmd file.");
+                            Console.ResetColor();
+                        }
+                    } while(!possibleFile);
                     Console.WriteLine($"using level {Path.GetFileNameWithoutExtension(gmdPath)}");
                     Console.WriteLine();
 
                     //version picker
                     PrintVersions();
-                    Console.Write("Pick a version: ");
-                    int version;
-                    string versionString = Console.ReadLine()!;
-                    try
+                    var possibleVersion = true;
+                    string versionString;
+                    do
                     {
+                        Console.Write("Pick a version: ");
+                        versionString = Console.ReadLine()!;
                         if (Convert.ToInt32(versionString) < 1 || Convert.ToInt32(versionString) > 19)
                         {
-                            throw new Exception("Invalid version.");
+                            Console.WriteLine("Invalid version.");
+                            Console.WriteLine();
+                            possibleVersion = false;
                         }
-                        version = Convert.ToInt32(versionString);
-                    }
-                    catch
-                    {
-                        throw;
-                    }
+                    } while(!possibleVersion);
+                    var version = Convert.ToInt32(versionString);
 
                     // print objects?
                     Console.Write("Print objects? (y/n): ");
-                    bool printObjects = Console.ReadLine()!.Trim().ToLower() == "y" ? true : false;
+                    var printObjects = Console.ReadLine()!.Trim().ToLower() == "y";
 
-                    ReadGMDFile gmd = new ReadGMDFile();
-                    try
-                    {
-                        gmd.ReadFile(gmdPath, csvFilePath, printObjects, version);
-                    }
-                    catch
-                    {
-                        throw;
-                    }
+                    var gmd = new ReadGmdFile();
+                    gmd.ReadFile(gmdPath, csvFilePath, printObjects, version);
                 }
                 catch (Exception e)
                 {
@@ -97,9 +98,11 @@ namespace GLVC
                 }
 
                 // reset GJGameLevel
-                GJGameLevel level = new GJGameLevel();
-                level.LevelString = "";
-                level.AudioTrack = 1;
+                var level = new GjGameLevel
+                {
+                    LevelString = "",
+                    AudioTrack = 1
+                };
                 level.Objects.Clear();
                 // garbage collector
                 GC.Collect();
@@ -109,7 +112,7 @@ namespace GLVC
             }
         }
 
-        static void PrintVersions()
+        private static void PrintVersions()
         {
             Console.WriteLine("-----------------------");
             Console.ForegroundColor = ConsoleColor.Yellow;
@@ -135,18 +138,20 @@ namespace GLVC
             Console.ResetColor();
             Console.WriteLine("-----------------------");
         }
-        static void PrintHeader()
+
+        private static void PrintHeader()
         {
             //Figgle Text
             Console.Write(FiggleFonts.Standard.Render("GLVC"));
             //github link
             Console.WriteLine("github.com/lucastozo/GLVC");
             //load version
-            Assembly assembly = Assembly.GetExecutingAssembly();
+            Assembly.GetExecutingAssembly();
             Console.WriteLine($"Version: {Assembly.GetExecutingAssembly().GetName().Version}");
             Console.WriteLine();
         }
-        static void CsvHelp()
+
+        private static void CsvHelp()
         {
             Console.Clear();
             PrintHeader();

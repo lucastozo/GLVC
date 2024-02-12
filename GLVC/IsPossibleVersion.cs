@@ -5,32 +5,30 @@ namespace GLVC
 {
     public class IsPossibleVersion
     {
-        private Dictionary<string, string> csvData;
+        private readonly Dictionary<string, string> _csvData;
 
         public IsPossibleVersion(string csvFilePath, int version)
         {
-            csvData = new Dictionary<string, string>();
-            using (var reader = new StreamReader(csvFilePath))
-            using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+            _csvData = new Dictionary<string, string>();
+            using var reader = new StreamReader(csvFilePath);
+            using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
+            while (csv.Read())
             {
-                while (csv.Read())
-                {
-                    var objectId = csv.GetField<string>(0);
-                    var isPresentInVersion = csv.GetField<string>(version);
-                    csvData[objectId!] = isPresentInVersion!;
-                }
+                var objectId = csv.GetField<string>(0);
+                var isPresentInVersion = csv.GetField<string>(version);
+                _csvData[objectId!] = isPresentInVersion!;
             }
         }
 
         public (bool, string) CheckSingleObject(string obj, int version)
         {
-            string[] parts = obj.Split(',');
-            string objectId = "";
-            string positionX = "";
-            string positionY = "";
-            string rotation = "";
-            string scale = "";
-            for (int i = 0; i < parts.Length; i += 2)
+            var parts = obj.Split(',');
+            var objectId = "";
+            var positionX = "";
+            var positionY = "";
+            var rotation = "";
+            var scale = "";
+            for (var i = 0; i < parts.Length; i += 2)
             {
                 switch (parts[i])
                 {
@@ -51,13 +49,13 @@ namespace GLVC
                         break;
                 }
             }
-            if (csvData.ContainsKey(objectId) && csvData[objectId] == "no")
+            if (_csvData.TryGetValue(objectId, out var value) && value == "no")
             {
                 return (false, $"Error: Illegal object ID: {objectId}, Position X,Y: {positionX}, {positionY}");
             }
             if (!string.IsNullOrEmpty(rotation))
             {
-                int rotationValue = Math.Abs(int.Parse(rotation));
+                var rotationValue = Math.Abs(int.Parse(rotation));
                 if (rotationValue != 90 && rotationValue != 180 && rotationValue != 270 && version < 12)
                 {
                     return (false,
@@ -71,7 +69,7 @@ namespace GLVC
                     return (false, $"Error: Object ID: {objectId} has custom scale value, Position X,Y: {positionX}, {positionY}");
                 }
             }
-            return (true, String.Empty);
+            return (true, string.Empty);
         }
     }
 }
