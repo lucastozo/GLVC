@@ -34,3 +34,4 @@ C:\Users\Tozo\Documents\GitHub\GLVC\GLVC\obj\Debug\net7.0\refint\GLVC.dll
 C:\Users\Tozo\Documents\GitHub\GLVC\GLVC\obj\Debug\net7.0\GLVC.pdb
 C:\Users\Tozo\Documents\GitHub\GLVC\GLVC\obj\Debug\net7.0\GLVC.genruntimeconfig.cache
 C:\Users\Tozo\Documents\GitHub\GLVC\GLVC\obj\Debug\net7.0\ref\GLVC.dll
+C:\Users\Tozo\Documents\GitHub\GLVC\GLVC\obj\Debug\net7.0\GLVC.sourcelink.json

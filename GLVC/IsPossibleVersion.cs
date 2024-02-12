@@ -26,26 +26,29 @@ namespace GLVC
         {
             string[] parts = obj.Split(',');
             string objectId = "";
-            string rotation = "";
             string positionX = "";
             string positionY = "";
+            string rotation = "";
+            string scale = "";
             for (int i = 0; i < parts.Length; i += 2)
             {
-                if (parts[i] == "1")
+                switch (parts[i])
                 {
-                    objectId = parts[i + 1];
-                }
-                else if (parts[i] == "6")
-                {
-                    rotation = parts[i + 1];
-                }
-                else if (parts[i] == "2")
-                {
-                    positionX = parts[i + 1];
-                }
-                else if (parts[i] == "3")
-                {
-                    positionY = parts[i + 1];
+                    case "1":
+                        objectId = parts[i + 1];
+                        break;
+                    case "2":
+                        positionX = parts[i + 1];
+                        break;
+                    case "3":
+                        positionY = parts[i + 1];
+                        break;
+                    case "6":
+                        rotation = parts[i + 1];
+                        break;
+                    case "32":
+                        scale = parts[i + 1];
+                        break;
                 }
             }
             if (csvData.ContainsKey(objectId) && csvData[objectId] == "no")
@@ -57,7 +60,15 @@ namespace GLVC
                 int rotationValue = Math.Abs(int.Parse(rotation));
                 if (rotationValue != 90 && rotationValue != 180 && rotationValue != 270 && version < 12)
                 {
-                    return (false, $"Error: Object ID: {objectId} has custom rotation value, Position X,Y: {positionX}, {positionY}");
+                    return (false,
+                        $"Error: Object ID: {objectId} has custom rotation value, Position X,Y: {positionX}, {positionY}");
+                }
+            }
+            if (!string.IsNullOrEmpty(scale))
+            {
+                if (version < 14)
+                {
+                    return (false, $"Error: Object ID: {objectId} has custom scale value, Position X,Y: {positionX}, {positionY}");
                 }
             }
             return (true, String.Empty);
