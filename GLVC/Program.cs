@@ -49,8 +49,8 @@ namespace GLVC
                     }
 
                     //gmd file path
-                    var gmdPath = "";
-                    var possibleFile = false;
+                    string gmdPath;
+                    bool possibleFile;
                     do
                     {
                         Console.Write("Insert a .GMD file path: ");
