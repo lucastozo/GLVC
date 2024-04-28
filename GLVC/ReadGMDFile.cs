@@ -6,24 +6,32 @@ namespace GLVC
 {
     public class ReadGmdFile : GjGameLevel
     {
-        public void ReadFile(string filePath, string csvFilePath, bool printObjects, int version)
+        public void ReadFile(string filePath, string csvFilePath, int version)
         {
-            // load xml
-            var xmlData = File.ReadAllText(filePath);
+
+            string? xmlData;
+            using (var reader = new StreamReader(filePath))
+            {
+                xmlData = reader.ReadToEnd();
+            }
             xmlData = CleanInvalidXmlChars(xmlData);
+
+            static string CleanInvalidXmlChars(string text)
+            {
+                var validXmlChars = text.Where(XmlConvert.IsXmlChar).ToArray();
+                return new string(validXmlChars);
+            }
+
             var xmlDoc = new XmlDocument();
             xmlDoc.LoadXml(xmlData);
 
-            // default song
             AudioTrack = 1;
-            // audio track is NG?
             var audioTrackIsNg = false;
 
             // check k45 and k8
             foreach (XmlNode kNode in xmlDoc.SelectNodes("//k")!)
             {
                 var key = kNode.InnerText;
-
                 switch (key)
                 {
                     case "k45":
@@ -40,8 +48,7 @@ namespace GLVC
                     case "k8":
                     {
                         AudioTrack = int.Parse(kNode.NextSibling!.InnerText.Trim()) + 1;
-                        // Check song
-                        // array, index = game version, value = max song ID
+                        // index = game version, value = max song ID
                         int[] maxAudiosPorVersao = { 0, 6, 6, 7, 7, 8, 2, 9, 10, 12, 13, 14, 15, 17, 19, 20, 2, 9, 2, 21 };
                         if (AudioTrack > maxAudiosPorVersao[version])
                         {
@@ -65,7 +72,6 @@ namespace GLVC
                 if (key == "k4")
                 {
                     LevelString = value;
-
                     var safe = value.Replace('-', '+').Replace('_', '/');
                     // Decode the base64 string
                     var compressedBytes = Convert.FromBase64String(safe);
@@ -94,13 +100,12 @@ namespace GLVC
                     foreach (var obj in objects)
                     {
                         var possible = isPossibleVersion.CheckSingleObject(obj, version);
-                        if (possible.Item1) // item 1 is bool
+                        if (possible.Item1)
                         {
                             Objects.Add(obj);
                         }
                         else
                         {
-                            // throw new Exception(possible.Item2); // item 2 is string
                             Console.ForegroundColor = ConsoleColor.Red;
                             Console.WriteLine(possible.Item2);
                             Console.ResetColor();
@@ -117,64 +122,14 @@ namespace GLVC
                         }
                     }
 
-                    // print the objects
-                    if (printObjects)
-                    {
-                        Console.Clear();
-                        var print = new PrintObjects();
-                        print.PrintHeader(Path.GetFileName(filePath), "Index", "ObjectID", "Position", "Rotation", "Scale");
-                        var index = 1;
-                        foreach (var obj in Objects)
-                        {
-                            var parts = obj.Split(',');
-                            var objectId = "";
-                            var positionX = "0";
-                            var positionY = "0";
-                            var rotation = "0";
-                            var scale = "1";
-                            for (var i = 0; i < parts.Length; i += 2)
-                            {
-                                switch (parts[i])
-                                {
-                                    case "1":
-                                        objectId = parts[i + 1];
-                                        break;
-                                    case "2":
-                                        positionX = parts[i + 1];
-                                        break;
-                                    case "3":
-                                        positionY = parts[i + 1];
-                                        break;
-                                    case "6":
-                                        rotation = parts[i + 1];
-                                        break;
-                                    case "32":
-                                        scale = parts[i + 1];
-                                        break;
-                                }
-                            }
-                            var position = positionX + "X, " + positionY + "Y";
-                            if (!string.IsNullOrEmpty(objectId))
-                            {
-                                print.PrintRow(index.ToString(), objectId, position, rotation, scale);
-                                index++;
-                            }
-                        }
-                    }
-
                 }
             }
+            xmlData = null; // trying to free memory
+            xmlDoc = null; // trying to free memory
 
-            // success
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("Success: Possible Level");
             Console.ResetColor();
-        }
-
-        public static string CleanInvalidXmlChars(string text)
-        {
-            var validXmlChars = text.Where(XmlConvert.IsXmlChar).ToArray();
-            return new string(validXmlChars);
         }
     }
 }

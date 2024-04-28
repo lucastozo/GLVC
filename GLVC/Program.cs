@@ -1,5 +1,4 @@
-﻿using Figgle;
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace GLVC
 {
@@ -7,48 +6,14 @@ namespace GLVC
     {
         private static void Main()
         {
-            // put the program inside a loop
+            const string csvFilePath = "objects.csv";
+
             while (true)
             {
                 Console.Clear();
                 PrintHeader();
-
                 try
                 {
-                    //csv file path
-                    Console.WriteLine("leave blank to use csv inside the program folder");
-                    Console.WriteLine("type '/help' for help");
-                    Console.Write("Insert .CSV file path (");
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.Write("docs.google.com/spreadsheets/d/18R2_qBXa9iCZZ6bhfSpxEah3YLRGeBSk");
-                    Console.ResetColor();
-                    Console.Write("): ");
-                    var csvFilePath = Console.ReadLine()!.Trim();
-                    switch (csvFilePath)
-                    {
-                        case "":
-                            Console.WriteLine("using default CSV file.");
-                            Console.WriteLine();
-                            csvFilePath = "objid.csv";
-                            break;
-                        case "/help":
-                            CsvHelp();
-                            Console.WriteLine("Press any key to continue...");
-                            Console.ReadKey();
-                            continue;
-                        default:
-                        {
-                            if (!File.Exists(csvFilePath))
-                            {
-                                throw new FileNotFoundException();
-                            }
-                            Console.WriteLine("using custom CSV file.");
-                            Console.WriteLine();
-                            break;
-                        }
-                    }
-
-                    //gmd file path
                     string gmdPath;
                     bool possibleFile;
                     do
@@ -69,26 +34,21 @@ namespace GLVC
                     //version picker
                     PrintVersions();
                     var possibleVersion = true;
-                    string versionString;
+                    var version = 0;
                     do
                     {
                         Console.Write("Pick a version: ");
-                        versionString = Console.ReadLine()!;
-                        if (Convert.ToInt32(versionString) < 1 || Convert.ToInt32(versionString) > 19)
+                        version = Convert.ToInt32(Console.ReadLine());
+                        if (version < 1 || version > 19)
                         {
                             Console.WriteLine("Invalid version.");
                             Console.WriteLine();
                             possibleVersion = false;
                         }
                     } while(!possibleVersion);
-                    var version = Convert.ToInt32(versionString);
-
-                    // print objects?
-                    Console.Write("Print objects? (y/n): ");
-                    var printObjects = Console.ReadLine()!.Trim().ToLower() == "y";
 
                     var gmd = new ReadGmdFile();
-                    gmd.ReadFile(gmdPath, csvFilePath, printObjects, version);
+                    gmd.ReadFile(gmdPath, csvFilePath, version);
                 }
                 catch (Exception e)
                 {
@@ -104,8 +64,6 @@ namespace GLVC
                     AudioTrack = 1
                 };
                 level.Objects.Clear();
-                // garbage collector
-                GC.Collect();
 
                 Console.WriteLine("Press any key to restart the program...");
                 Console.ReadKey();
@@ -114,59 +72,49 @@ namespace GLVC
 
         private static void PrintVersions()
         {
+            List<string> versions = new()
+            {
+                "1.0",
+                "1.02",
+                "1.1",
+                "1.11",
+                "1.2",
+                "Lite 1.30",
+                "1.3",
+                "1.4",
+                "1.51",
+                "1.6",
+                "1.7",
+                "1.80",
+                "1.93",
+                "2.00",
+                "2.111",
+                "SZ 2017",
+                "GDW 2019",
+                "SZ 2022",
+                "2.2"
+            };
+
             Console.WriteLine("-----------------------");
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("1 - 1.0");
-            Console.WriteLine("2 - 1.02");
-            Console.WriteLine("3 - 1.1");
-            Console.WriteLine("4 - 1.11");
-            Console.WriteLine("5 - 1.2");
-            Console.WriteLine("6 - Lite 1.30");
-            Console.WriteLine("7 - 1.3");
-            Console.WriteLine("8 - 1.4");
-            Console.WriteLine("9 - 1.51");
-            Console.WriteLine("10 - 1.6");
-            Console.WriteLine("11 - 1.7");
-            Console.WriteLine("12 - 1.80");
-            Console.WriteLine("13 - 1.93");
-            Console.WriteLine("14 - 2.00");
-            Console.WriteLine("15 - 2.111");
-            Console.WriteLine("16 - SZ 2017");
-            Console.WriteLine("17 - GDW 2019");
-            Console.WriteLine("18 - SZ 2022");
-            Console.WriteLine("19 - 2.2");
-            Console.ResetColor();
+            for (var i = 0; i < versions.Count; i++)
+            {
+                Console.WriteLine($"{i + 1}. {versions[i]}");
+            }
             Console.WriteLine("-----------------------");
         }
 
         private static void PrintHeader()
         {
-            //Figgle Text
-            Console.Write(FiggleFonts.Standard.Render("GLVC"));
+            Console.WriteLine("GLVC");
             //github link
             Console.WriteLine("github.com/lucastozo/GLVC");
             //load version
             Assembly.GetExecutingAssembly();
-            Console.WriteLine($"Version: {Assembly.GetExecutingAssembly().GetName().Version}");
+            var version = Assembly.GetExecutingAssembly().GetName().Version;
+            version = new Version(version!.Major, version.Minor, version.Build);
+            Console.WriteLine($"version: {version}");
             Console.WriteLine();
-        }
-
-        private static void CsvHelp()
-        {
-            Console.Clear();
-            PrintHeader();
-            Console.WriteLine("------------------------------");
-            Console.WriteLine("How to download .csv file (object id database):");
-            Console.Write("1. go to: ");
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("docs.google.com/spreadsheets/d/18R2_qBXa9iCZZ6bhfSpxEah3YLRGeBSk");
-            Console.ResetColor();
-            Console.WriteLine("2. download the spreadsheet as .csv");
-            Console.Write("3. put the .csv file inside the program folder named as ");
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write("objid.csv");
-            Console.ResetColor();
-            Console.WriteLine(" or, if you want to, locate it manually.");
         }
     }
 }

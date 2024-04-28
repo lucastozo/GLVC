@@ -56,7 +56,7 @@ namespace GLVC
                         foreach (var obj in objects)
                         {
                             var possible = isPossibleVersion.CheckSingleObject(obj, version);
-                            if (possible.Item1) // item 1 is bool
+                            if (possible.Item1)
                             {
                                 Objects.Add(obj);
                             }
