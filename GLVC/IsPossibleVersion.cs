@@ -20,6 +20,30 @@ namespace GLVC
             }
         }
 
+        public bool IsSongPossible(int version, int audioTrack, string key)
+        {
+            // key
+            // k45 = newgrounds
+            // k8 = default songs
+            switch (key)
+            {
+                case "k45":
+                    if (version < 13)
+                    {
+                        return false;
+                    }
+                    return true;
+                case "k8":
+                    int[] maxAudiosPorVersao = { 0, 7, 7, 8, 8, 9, 7, 10, 11, 12, 14, 15, 16, 18, 20, 21, 2, 9, 2, 22 };
+                    if (audioTrack > maxAudiosPorVersao[version])
+                    {
+                        return false;
+                    }
+                    return true;
+            }
+            return true;
+        }
+
         public (bool, string) CheckSingleObject(string obj, int version)
         {
             var parts = obj.Split(',');

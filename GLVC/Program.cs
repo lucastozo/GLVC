@@ -64,6 +64,9 @@ namespace GLVC
                     AudioTrack = 1
                 };
                 level.Objects.Clear();
+                var xmlFiles = new ReadGmdFile();
+                xmlFiles.xmlData = null; // trying to free memory
+                xmlFiles.xmlDoc = null; // trying to free memory
 
                 Console.WriteLine("Press any key to restart the program...");
                 Console.ReadKey();

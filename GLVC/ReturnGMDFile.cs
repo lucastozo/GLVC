@@ -6,11 +6,13 @@ namespace GLVC
 {
     public class ReturnGmdFile : GjGameLevel
     {
-        //variables
         private string _levelName = "";
         private string _levelDescription = "";
         private string _levelString = "";
         private string _songKey = "";
+
+        private int _levelObjects = 0;
+        private int _illegalObjects = 0;
 
         public void ReturnFile(string xmlData, string[] objects, string csvFilePath, int version, bool audioTrackIsNg)
         {
@@ -18,6 +20,13 @@ namespace GLVC
             DumpLevel(_levelName, _levelDescription, _levelString, _songKey, audioTrackIsNg);
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine($"Level {_levelName} dumped successfully in 'levels' inside the program folder.");
+            if (_illegalObjects > 0)
+            {
+                var pctRemoved = (float)_illegalObjects / _levelObjects * 100;
+                pctRemoved = (float)Math.Round(pctRemoved, 2);
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine($"{_illegalObjects} objects of {_levelObjects} were not included due to being illegal objects. This represents {pctRemoved}% of the level.");
+            }
             Console.ResetColor();
         }
 
@@ -55,13 +64,15 @@ namespace GLVC
                         // fill objects
                         foreach (var obj in objects)
                         {
+                            _levelObjects++;
                             var possible = isPossibleVersion.CheckSingleObject(obj, version);
                             if (possible.Item1)
                             {
                                 Objects.Add(obj);
+                                continue;
                             }
+                            _illegalObjects++;
                         }
-
                         break;
                     }
                 }

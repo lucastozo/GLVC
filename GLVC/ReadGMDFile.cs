@@ -6,10 +6,11 @@ namespace GLVC
 {
     public class ReadGmdFile : GjGameLevel
     {
+        public string? xmlData;
+        public XmlDocument? xmlDoc;
+
         public void ReadFile(string filePath, string csvFilePath, int version)
         {
-
-            string? xmlData;
             using (var reader = new StreamReader(filePath))
             {
                 xmlData = reader.ReadToEnd();
@@ -22,10 +23,11 @@ namespace GLVC
                 return new string(validXmlChars);
             }
 
-            var xmlDoc = new XmlDocument();
+            xmlDoc = new XmlDocument();
             xmlDoc.LoadXml(xmlData);
 
-            AudioTrack = 1;
+            var isPossibleVersion = new IsPossibleVersion(csvFilePath, version);
+
             var audioTrackIsNg = false;
 
             // check k45 and k8
@@ -37,9 +39,8 @@ namespace GLVC
                     case "k45":
                     {
                         AudioTrack = int.Parse(kNode.NextSibling!.InnerText.Trim());
-                        if (version < 13)
+                        if(!isPossibleVersion.IsSongPossible(version, AudioTrack, key))
                         {
-                            // k45 key is custom song
                             throw new Exception($"Error: Illegal custom song ID: {AudioTrack}");
                         }
                         audioTrackIsNg = true;
@@ -47,21 +48,15 @@ namespace GLVC
                     }
                     case "k8":
                     {
-                        AudioTrack = int.Parse(kNode.NextSibling!.InnerText.Trim()) + 1;
-                        // index = game version, value = max song ID
-                        int[] maxAudiosPorVersao = { 0, 6, 6, 7, 7, 8, 2, 9, 10, 12, 13, 14, 15, 17, 19, 20, 2, 9, 2, 21 };
-                        if (AudioTrack > maxAudiosPorVersao[version])
+                        AudioTrack = int.Parse(kNode.NextSibling!.InnerText.Trim());
+                        if (!isPossibleVersion.IsSongPossible(version, AudioTrack, key))
                         {
                             throw new Exception($"Error: Illegal song ID: {AudioTrack}");
                         }
-
                         break;
                     }
                 }
             }
-
-            // create IsPossibleVersion object
-            var isPossibleVersion = new IsPossibleVersion(csvFilePath, version);
 
             // k4 key = objects
             foreach (XmlNode kNode in xmlDoc.SelectNodes("//k")!)
@@ -124,9 +119,6 @@ namespace GLVC
 
                 }
             }
-            xmlData = null; // trying to free memory
-            xmlDoc = null; // trying to free memory
-
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("Success: Possible Level");
             Console.ResetColor();
