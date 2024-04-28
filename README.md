@@ -19,10 +19,3 @@ And after specifying the file path, just pick a Geometry Dash version to check t
 ![Screenshot_1](https://github.com/lucastozo/GLVC/assets/102305949/9b363e9f-e5d6-4239-9eaa-98fb8715c621)
 
 In my example, The Hell Zone by Sohn0924 returned `Success: Possible Level` and the program waits any input to restart.
-
-## Error Messages
-
-* `Error: Illegal song ID: songID` or `Error: Illegal custom song ID: songID` - Level uses an song not present in the version or the level uses a custom newgrounds song, respectively.
-* `Error: Illegal object ID: objectID, Position X,Y: posX, posY` - Level uses a possible song but has an illegal object for the specified version.
-
-If you got the `Illegal object ID` error, the program will ask if you want to generate a .gmd file without illegal objects, if yes, the file will be generated in the folder `levels` inside the program folder (the folder containing `GLVC.exe`)
